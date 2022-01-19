@@ -325,6 +325,15 @@ class Fetcher(object):
                 msg = 'Fail assert: %s from failed_asserts' % json.dumps(r, ensure_ascii=False)
                 break
 
+        msg += ', \\r\\nResponse Code : %s' % response.code
+        msg += ', \\r\\nResponse Header : %s' % str(response.headers).replace(';', '\\r\\nResponse Header : ')
+        if response.body:
+            msg += ', \\r\\nResponse Body : %s' % utils.decode(response.body, response.headers)
+
+        env['variables'].update({
+            '__log__': msg,
+        })
+
         if not success and msg and (response.error or response.reason):
             msg += ', \\r\\nResponse Error : %s' % str(response.error or response.reason)
 
