@@ -309,9 +309,18 @@ class MainWorker(object):
                 if (logtime['ErrTolerateCnt'] <= task['last_failed_count']):
                     await pushtool.pusher(user['id'], pushsw, 0x1, title, content)
             else:
-                disabled = True
-                next = None
-                content = u" \\r\\n任务已禁用"
+                if (newontime['sw']):
+                    if ('mode' not in newontime):
+                        newontime['mode'] = 'ontime'
+                    if (newontime['mode'] == 'ontime'):
+                        newontime['date'] = (datetime.datetime.now()+datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+                    next = caltool.calNextTs(newontime)['ts']
+                else:
+                    next = time.time() + max((tpl['interval'] if tpl['interval'] else 24 * 60 * 60), 1*60)
+                    if tpl['interval'] is None:
+                        next = self.fix_next_time(next)
+                disabled = False
+                content = u" \\r\\n签到任务失败"
                 await pushtool.pusher(user['id'], pushsw, 0x1, title, content)
 
             self.db.tasklog.add(task['id'], success=False, msg=str(e))
